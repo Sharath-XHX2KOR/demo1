@@ -14,38 +14,35 @@ jobs:
     
     strategy:
         matrix:
-            browser:
+          browser:
             - chrome 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Build Docker Image
-        run: |
-          docker build -t myimg -f Dockerfile .
-          docker images
-      - name: check folder
-        run: |
-          pwd
-          ls -al
+      
       - name: Run Cypress Tests in Docker Container
         run: |
+          docker build -t my-cypress-image -f Dockerfile --build-arg BROWSER=${{ matrix.browser }} .
           docker run --rm  \
             -v ${{ github.workspace }}/artifacts/screenshots:/Demo1/cypress/screenshots \
             -v ${{ github.workspace }}/artifacts/videos:/Demo1/cypress/videos \
-            -v ${{ github.workspace }}/artifacts/reports:/Demo1/cypress/reports myimg           
+            -v ${{ github.workspace }}/artifacts/reports:/Demo1/cypress/reports my-cypress-image     
+
       - name: Upload Test Screenshots
         uses: actions/upload-artifact@v2
         if: ${{ always() }}
         with:
           name: cypress-results-screenshots
           path: ./artifacts/screenshots 
+
       - name: Upload Test videos 
         uses: actions/upload-artifact@v2
         if: ${{ always() }}
         with:
             name: cypress-results-videos
 
-            path: ./artifacts/videos          
+            path: ./artifacts/videos     
+
       - name: Upload Test result 
         uses: actions/upload-artifact@v2
         if: ${{ always() }}
